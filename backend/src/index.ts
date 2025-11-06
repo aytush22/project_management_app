@@ -4,6 +4,10 @@ import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import session from "cookie-session";
+import connectDatabase from "./config/database.config.js";
+import { errorHandler } from "./middlewares/errorHandler.middleware.js";
+import { HTTPSTATUS } from "./config/http.config.js";
+import { asyncHandler } from "./middlewares/asyncHandler.middleware.js";
 
 const app = express();
 const BASE_PATH = config.BASE_PATH;
@@ -27,14 +31,20 @@ app.use(
   })
 );
 
-app.get("/", (req: Request, res: Response, next: NextFunction) => {
-  res.status(200).json({
-    message: "This is the base url",
-  });
-});
+app.get(
+  "/",
+  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    res.status(HTTPSTATUS.OK).json({
+      message: "This is the base url",
+    });
+  })
+);
+
+app.use(errorHandler);
 
 app.listen(config.PORT, async () => {
   console.log(
     `Server is listening on port ${config.PORT} in ${config.NODE_ENV}`
   );
+  await connectDatabase();
 });
