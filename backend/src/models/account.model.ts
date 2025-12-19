@@ -30,6 +30,7 @@ const accountSchema = new Schema<AccountDocument>(
     refreshToken: {
       type: String,
       default: null,
+                                  
     },
     tokenExpiry: {
       type: Date,
