@@ -14,10 +14,15 @@ const memberSchema = new Schema<MemberDocument>(
       ref: "User",
       required: true,
     },
-    role : {
-        type : Schema.Types.ObjectId,
-        ref : "Role",
-        required : true,
+    workspaceId: {
+      type: Schema.Types.ObjectId,
+      ref: "Workspace",
+      required: true,
+    },
+    role: {
+      type: Schema.Types.ObjectId,
+      ref: "Role",
+      required: true,
     },
     joinedAt: {
       type: Date,
