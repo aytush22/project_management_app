@@ -1,10 +1,12 @@
 import passport from "passport";
 import type { Request } from "express";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { Strategy as LocalStrategy } from "passport-local";
 import { config } from "./app.config.js";
 import { NotFoundException } from "../utils/appError.js";
 import { ProviderEnum } from "../enums/account-provider.enum.js";
 import { loginOrCreateAccountService } from "../services/auth.service.js";
+import { verifyUserService } from "../services/auth.service.js";
 passport.use(
   new GoogleStrategy(
     {
@@ -32,6 +34,24 @@ passport.use(
         done(null, user);
       } catch (error) {
         done(error, false);
+      }
+    }
+  )
+);
+
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+      session: true,
+    },
+    async (email, password, done) => {
+      try {
+        const user = await verifyUserService({ email, password });
+        return done(null, user);
+      } catch (error: any) {
+        return done(error, false, { message: error?.message });
       }
     }
   )
