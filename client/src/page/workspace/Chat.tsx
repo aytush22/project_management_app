@@ -8,7 +8,7 @@ import API from "@/lib/axios-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, Loader } from "lucide-react";
+import { Send, Loader, MessageSquare } from "lucide-react";
 import { getAvatarColor, getAvatarFallbackText } from "@/lib/helper";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -94,12 +94,15 @@ const Chat = () => {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-60px)] w-full max-w-4xl mx-auto p-4">
-            <div className="flex-1 bg-white dark:bg-zinc-900 rounded-lg shadow-sm border overflow-hidden flex flex-col">
-                <header className="p-4 border-b bg-gray-50 dark:bg-zinc-800/50">
-                    <h2 className="text-lg font-semibold">Workspace Chat</h2>
+        <div className="flex flex-col h-[calc(100vh-60px)] w-full max-w-4xl mx-auto p-4 animate-slide-up">
+            <div className="flex-1 clean-card overflow-hidden flex flex-col bg-card">
+                <header className="p-4 border-b border-border bg-card">
+                    <div className="flex items-center gap-2">
+                        <MessageSquare className="w-5 h-5 text-primary" />
+                        <h2 className="text-lg font-bold text-foreground">Workspace Chat</h2>
+                    </div>
                     <p className="text-sm text-muted-foreground">
-                        Chat with your team members in real-time.
+                        Real-time team communication.
                     </p>
                 </header>
 
@@ -153,9 +156,9 @@ const Chat = () => {
                                                 </span>
                                             )}
                                             <div
-                                                className={`px-4 py-2 rounded-lg text-sm ${isMe
-                                                    ? "bg-primary text-primary-foreground rounded-tr-none"
-                                                    : "bg-muted rounded-tl-none"
+                                                className={`px-4 py-2 rounded-md text-sm shadow-sm ${isMe
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "bg-secondary text-secondary-foreground border border-border"
                                                     }`}
                                             >
                                                 {msg.content}
@@ -169,15 +172,15 @@ const Chat = () => {
                     </div>
                 </ScrollArea>
 
-                <div className="p-4 border-t bg-gray-50 dark:bg-zinc-800/50">
+                <div className="p-4 border-t border-border bg-card">
                     <form onSubmit={handleSendMessage} className="flex gap-2">
                         <Input
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                             placeholder="Type a message..."
-                            className="flex-1"
+                            className="flex-1 bg-background border-input focus-visible:ring-primary transition-all rounded-md"
                         />
-                        <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+                        <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-md shadow-sm">
                             <Send className="h-4 w-4" />
                         </Button>
                     </form>

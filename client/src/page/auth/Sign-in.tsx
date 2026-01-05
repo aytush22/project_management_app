@@ -128,17 +128,9 @@ const SignIn = () => {
                           name="password"
                           render={({ field }) => (
                             <FormItem>
-                              <div className="flex items-center">
-                                <FormLabel className="dark:text-[#f1f7feb5] text-sm">
-                                  Password
-                                </FormLabel>
-                                <a
-                                  href="#"
-                                  className="ml-auto text-sm underline-offset-4 hover:underline"
-                                >
-                                  Forgot your password?
-                                </a>
-                              </div>
+                              <FormLabel className="dark:text-[#f1f7feb5] text-sm">
+                                Password
+                              </FormLabel>
                               <FormControl>
                                 <Input
                                   type="password"
@@ -181,7 +173,7 @@ const SignIn = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

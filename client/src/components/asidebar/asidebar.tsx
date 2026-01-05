@@ -42,9 +42,9 @@ const Asidebar = () => {
 
   return (
     <>
-      <Sidebar collapsible="icon">
-        <SidebarHeader className="!py-0 dark:bg-background">
-          <div className="flex h-[50px] items-center justify-start w-full px-1">
+      <Sidebar collapsible="icon" className="border-r border-border bg-card">
+        <SidebarHeader className="!py-0 bg-card border-b border-border/50">
+          <div className="flex h-[60px] items-center justify-start w-full px-2">
             <Logo url={`/workspace/${workspaceId}`} />
             {open && (
               <Link
@@ -56,7 +56,7 @@ const Asidebar = () => {
             )}
           </div>
         </SidebarHeader>
-        <SidebarContent className=" !mt-0 dark:bg-background">
+        <SidebarContent className="!mt-0 bg-card">
           <SidebarGroup className="!py-0">
             <SidebarGroupContent>
               <WorkspaceSwitcher />
@@ -67,7 +67,7 @@ const Asidebar = () => {
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter className="dark:bg-background">
+        <SidebarFooter className="bg-card border-t border-border">
           <SidebarMenu>
             <SidebarMenuItem>
               {isLoading ? (

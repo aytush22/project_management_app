@@ -27,8 +27,8 @@ const Header = () => {
 
   const pageHeading = getPageLabel(pathname);
   return (
-    <header className="flex sticky top-0 z-50 bg-white h-12 shrink-0 items-center border-b">
-      <div className="flex flex-1 items-center gap-2 px-3">
+    <header className="flex sticky top-0 z-50 h-14 shrink-0 items-center px-4 transition-all duration-300 bg-background border-b border-border shadow-sm">
+      <div className="flex flex-1 items-center gap-2">
         <SidebarTrigger />
         <Separator orientation="vertical" className="mr-2 h-4" />
         <Breadcrumb>
