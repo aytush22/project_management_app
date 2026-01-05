@@ -23,6 +23,12 @@ const projectSchema = new Schema<ProjectDocument>(
       default: "🏠",
     },
     description: {
+      type: String,
+      required: false,
+      trim: true,
+      default: null,
+    },
+    workspace: {
       type: Schema.Types.ObjectId,
       ref: "Workspace",
       required: true,

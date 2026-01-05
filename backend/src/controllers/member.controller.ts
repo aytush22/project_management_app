@@ -16,8 +16,9 @@ export const joinWorkspaceController = asyncHandler(
 
     return res.status(HTTPSTATUS.OK).json({
       message: "Successfully joined the workspace",
-      workspaceId,
       role,
     });
   }
 );
+
+

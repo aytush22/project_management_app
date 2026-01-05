@@ -56,7 +56,25 @@ export const getAllWorkspacesUserIsMemberService = async (userId: string) => {
     .exec();
 
   const workspaces = memberships.map((membership) => membership.workspaceId);
+
   return { workspaces };
+};
+
+export const updateWorkspaceService = async (
+  workspaceId: string,
+  name: string,
+  description?: string
+) => {
+  const workspace = await WorkspaceModel.findById(workspaceId);
+  if (!workspace) {
+    throw new NotFoundException("Workspace not found");
+  }
+
+  workspace.name = name;
+  workspace.description = description;
+  await workspace.save();
+
+  return { workspace };
 };
 
 export const getWorkspaceByIdService = async (workspaceId: string) => {
@@ -120,7 +138,71 @@ export const getWorkspaceAnalyticsService = async (workspaceId: string) => {
     completedTasks,
   };
 
-  return { analytics };
+  // Last 7 Days of Completed Tasks
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const last7DaysMetrics = await TaskModel.aggregate([
+    {
+      $match: {
+        workspace: new mongoose.Types.ObjectId(workspaceId),
+        status: TaskStatusEnum.DONE,
+        updatedAt: { $gte: sevenDaysAgo },
+      },
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$updatedAt" } },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  // Priority Distribution
+  const priorityMetrics = await TaskModel.aggregate([
+    {
+      $match: {
+        workspace: new mongoose.Types.ObjectId(workspaceId),
+      },
+    },
+    {
+      $group: {
+        _id: "$priority",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // Format the data for the frontend
+  const last7Days = last7DaysMetrics.map((item) => ({
+    date: item._id,
+    count: item.count,
+  }));
+
+  const taskPriorityDistribution = {
+    low: 0,
+    medium: 0,
+    high: 0,
+  };
+
+  priorityMetrics.forEach((metric) => {
+    // Check if metric._id is valid before accessing property
+    if (metric._id && typeof metric._id === 'string') {
+      const key = metric._id.toLowerCase() as keyof typeof taskPriorityDistribution;
+      if (taskPriorityDistribution[key] !== undefined) {
+        taskPriorityDistribution[key] = metric.count;
+      }
+    }
+  });
+
+  return {
+    analytics: {
+      ...analytics,
+      last7Days,
+      taskPriorityDistribution,
+    },
+  };
 };
 
 export const changeMemberRoleService = async (
@@ -153,4 +235,35 @@ export const changeMemberRoleService = async (
   return {
     member,
   };
+};
+
+export const deleteMemberFromWorkspaceService = async (
+  workspaceId: string,
+  memberId: string
+) => {
+  const workspace = await WorkspaceModel.findById(workspaceId);
+  if (!workspace) {
+    throw new NotFoundException("Workspace not found");
+  }
+
+  const member = await MemberModel.findOne({
+    userId: memberId,
+    workspaceId: workspaceId,
+  });
+
+  if (!member) {
+    throw new Error("Member not found in the workspace");
+  }
+
+  const role = await RoleModel.findById(member.role);
+  if (role?.name === Roles.OWNER) {
+    throw new Error("Cannot remove the owner of the workspace");
+  }
+
+  await MemberModel.deleteOne({
+    userId: memberId,
+    workspaceId: workspaceId,
+  });
+
+  return { message: "Member removed successfully" };
 };
