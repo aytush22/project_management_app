@@ -7,6 +7,7 @@ import MemberModel from "../models/member.model.js";
 import mongoose from "mongoose";
 import TaskModel from "../models/task.model.js";
 import { TaskStatusEnum } from "../enums/task.enum.js";
+import { getIO } from "../socket.js";
 export const createWorkspaceService = async (
   userId: string,
   body: {
@@ -71,7 +72,7 @@ export const updateWorkspaceService = async (
   }
 
   workspace.name = name;
-  workspace.description = description;
+  workspace.description = description || "";
   await workspace.save();
 
   return { workspace };
@@ -264,6 +265,9 @@ export const deleteMemberFromWorkspaceService = async (
     userId: memberId,
     workspaceId: workspaceId,
   });
+
+  const io = getIO();
+  io.to(workspaceId).emit("member_removed", { memberId, userId: memberId });
 
   return { message: "Member removed successfully" };
 };

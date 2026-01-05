@@ -53,6 +53,7 @@ app.get(
 
 import projectRoutes from "./routes/project.route.js";
 import taskRoutes from "./routes/task.route.js";
+import chatRoutes from "./routes/chat.route.js";
 
 app.use(`${BASE_PATH}/auth`, authRoutes);
 app.use(`${BASE_PATH}/user`, isAuthenticated, userRoutes);
@@ -60,10 +61,18 @@ app.use(`${BASE_PATH}/workspace`, isAuthenticated, workspaceRoutes);
 app.use(`${BASE_PATH}/member`, isAuthenticated, memberRoutes);
 app.use(`${BASE_PATH}/project`, isAuthenticated, projectRoutes);
 app.use(`${BASE_PATH}/task`, isAuthenticated, taskRoutes);
+app.use(`${BASE_PATH}/chat`, isAuthenticated, chatRoutes);
 
 app.use(errorHandler);
 
-app.listen(config.PORT, async () => {
+import { initSocket } from "./socket.js";
+import http from "http";
+
+const server = http.createServer(app);
+
+initSocket(server);
+
+server.listen(config.PORT, async () => {
   console.log(
     `Server is listening on port ${config.PORT} in ${config.NODE_ENV}`
   );

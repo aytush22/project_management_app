@@ -1,5 +1,6 @@
 import WorkspaceModel from "../models/workspace.model.js";
 import MemberModel from "../models/member.model.js";
+import { getIO } from "../socket.js";
 import { NotFoundException, UnauthorizedException } from "../utils/appError.js";
 import { ErrorCodeEnum } from "../enums/error-code.enum.js";
 import RoleModel from "../models/roles-permission.model.js";
@@ -67,6 +68,9 @@ export const joinWorkspaceByInviteService = async (
     role: role._id,
   });
   await newMember.save();
+
+  const io = getIO();
+  io.to(`${workspace._id}`).emit("member_added", { userId, role: role.name });
 
   return { workspaceId: workspace._id, role: role.name };
 };
