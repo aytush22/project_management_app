@@ -14,6 +14,8 @@ import {
   EditProjectPayloadType,
   ProjectByIdPayloadType,
   ProjectResponseType,
+  PredictPriorityPayloadType,
+  PredictPriorityResponseType,
 } from "../types/api.type";
 import {
   AllWorkspaceResponseType,
@@ -275,6 +277,20 @@ export const deleteTaskMutationFn = async ({
 }> => {
   const response = await API.delete(
     `task/${taskId}/workspace/${workspaceId}/delete`
+  );
+  return response.data;
+};
+
+//*******AI PRIORITY PREDICTION ****************
+//********************************************* */
+
+export const predictPriorityMutationFn = async ({
+  workspaceId,
+  data,
+}: PredictPriorityPayloadType): Promise<PredictPriorityResponseType> => {
+  const response = await API.post(
+    `/task/predict-priority/workspace/${workspaceId}`,
+    data
   );
   return response.data;
 };

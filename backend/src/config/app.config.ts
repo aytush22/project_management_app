@@ -14,6 +14,8 @@ const appConfig = () => ({
 
   FRONTEND_ORIGIN: getEnv("FRONTEND_ORIGIN", "localhost"),
   FRONTEND_GOOGLE_CALLBACK_URL: getEnv("FRONTEND_GOOGLE_CALLBACK_URL"),
+
+  ML_SERVICE_URL: getEnv("ML_SERVICE_URL", "http://127.0.0.1:8001"),
 });
 
 export const config = appConfig();

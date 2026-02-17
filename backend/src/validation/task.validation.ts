@@ -36,6 +36,8 @@ export const createTaskSchema = z.object({
   status: statusSchema,
   assignedTo: assignedToSchema,
   dueDate: dueDateSchema,
+  prioritySuggestedByAI: z.boolean().optional().default(false),
+  aiConfidence: z.number().min(0).max(1).nullable().optional().default(null),
 });
 
 export const updateTaskSchema = z.object({
@@ -45,4 +47,6 @@ export const updateTaskSchema = z.object({
   status: statusSchema,
   assignedTo: assignedToSchema,
   dueDate: dueDateSchema,
+  prioritySuggestedByAI: z.boolean().optional(),
+  aiConfidence: z.number().min(0).max(1).nullable().optional(),
 }).partial();

@@ -15,9 +15,11 @@ export const createTaskService = async (
     status: string;
     assignedTo?: string | null;
     dueDate?: string;
+    prioritySuggestedByAI?: boolean;
+    aiConfidence?: number | null;
   }
 ) => {
-  const { title, description, priority, status, assignedTo, dueDate } = body;
+  const { title, description, priority, status, assignedTo, dueDate, prioritySuggestedByAI, aiConfidence } = body;
 
   const project = await ProjectModel.findById(projectId);
 
@@ -46,6 +48,8 @@ export const createTaskService = async (
     workspace: workspaceId,
     project: projectId,
     dueDate,
+    prioritySuggestedByAI: prioritySuggestedByAI || false,
+    aiConfidence: aiConfidence || null,
   });
 
   await task.save();
@@ -64,6 +68,8 @@ export const updateTaskService = async (
     status: string;
     assignedTo?: string | null;
     dueDate?: string;
+    prioritySuggestedByAI?: boolean;
+    aiConfidence?: number | null;
   }
 ) => {
   const project = await ProjectModel.findById(projectId);

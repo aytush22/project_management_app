@@ -2,7 +2,7 @@ import { z } from "zod";
 import { format } from "date-fns";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { CalendarIcon, Loader } from "lucide-react";
+import { CalendarIcon, Loader, Sparkles } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -38,9 +38,10 @@ import { TaskPriorityEnum, TaskStatusEnum } from "@/constant";
 import useGetProjectsInWorkspaceQuery from "@/hooks/api/use-get-projects";
 import useGetWorkspaceMembers from "@/hooks/api/use-get-workspace-members";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { createTaskMutationFn } from "@/lib/api";
+import { createTaskMutationFn, predictPriorityMutationFn } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export default function CreateTaskForm(props: {
   projectId?: string;
@@ -51,8 +52,19 @@ export default function CreateTaskForm(props: {
   const queryClient = useQueryClient();
   const workspaceId = useWorkspaceId();
 
+  // AI prediction state
+  const [aiPrediction, setAiPrediction] = useState<{
+    predictedPriority: "LOW" | "MEDIUM" | "HIGH";
+    confidence: number;
+  } | null>(null);
+  const [aiAccepted, setAiAccepted] = useState(false);
+
   const { mutate, isPending } = useMutation({
     mutationFn: createTaskMutationFn,
+  });
+
+  const { mutate: predictPriority, isPending: isPredicting } = useMutation({
+    mutationFn: predictPriorityMutationFn,
   });
 
   const { data, isLoading } = useGetProjectsInWorkspaceQuery({
@@ -141,6 +153,61 @@ export default function CreateTaskForm(props: {
   const statusOptions = transformOptions(taskStatusList);
   const priorityOptions = transformOptions(taskPriorityList);
 
+  // Handle AI Priority Prediction
+  const handlePredictPriority = () => {
+    const values = form.getValues();
+
+    if (!values.title) {
+      toast({
+        title: "Missing Info",
+        description: "Please enter a task title before predicting priority.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    predictPriority(
+      {
+        workspaceId,
+        data: {
+          title: values.title,
+          description: values.description || "",
+          dueDate: values.dueDate ? values.dueDate.toISOString() : undefined,
+          assignedTo: values.assignedTo || undefined,
+          projectId: values.projectId || projectId || undefined,
+        },
+      },
+      {
+        onSuccess: (response) => {
+          const prediction = response.prediction;
+          setAiPrediction(prediction);
+          setAiAccepted(true);
+
+          // Auto-set the priority field
+          form.setValue(
+            "priority",
+            prediction.predictedPriority as keyof typeof TaskPriorityEnum
+          );
+
+          toast({
+            title: "✨ AI Suggestion",
+            description: `Predicted priority: ${prediction.predictedPriority} (${Math.round(prediction.confidence * 100)}% confidence)`,
+            variant: "success",
+          });
+        },
+        onError: (error: any) => {
+          toast({
+            title: "AI Prediction Failed",
+            description:
+              error.response?.data?.message ||
+              "Could not get AI prediction. You can still set priority manually.",
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (isPending) return;
     const payload = {
@@ -149,6 +216,9 @@ export default function CreateTaskForm(props: {
       data: {
         ...values,
         dueDate: values.dueDate.toISOString(),
+        prioritySuggestedByAI: aiAccepted && aiPrediction !== null,
+        aiConfidence:
+          aiAccepted && aiPrediction ? aiPrediction.confidence : null,
       },
     };
 
@@ -418,16 +488,64 @@ export default function CreateTaskForm(props: {
               />
             </div>
 
-            {/* {Priority} */}
+            {/* {Priority with AI Suggestion} */}
             <div>
               <FormField
                 control={form.control}
                 name="priority"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Priority</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Priority</FormLabel>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs gap-1 border-violet-500/30 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 hover:text-violet-700 dark:hover:text-violet-300"
+                        onClick={handlePredictPriority}
+                        disabled={isPredicting}
+                      >
+                        {isPredicting ? (
+                          <Loader className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3 w-3" />
+                        )}
+                        {isPredicting ? "Predicting..." : "Suggest Priority"}
+                      </Button>
+                    </div>
+
+                    {/* AI Prediction Badge */}
+                    {aiPrediction && (
+                      <div className="flex items-center gap-2 p-2 rounded-md bg-violet-500/10 border border-violet-500/20">
+                        <Sparkles className="h-4 w-4 text-violet-500 shrink-0" />
+                        <span className="text-sm text-violet-700 dark:text-violet-300">
+                          AI suggests:{" "}
+                          <strong>{aiPrediction.predictedPriority}</strong>
+                          <span className="ml-1 text-xs opacity-75">
+                            ({Math.round(aiPrediction.confidence * 100)}%
+                            confidence)
+                          </span>
+                        </span>
+                      </div>
+                    )}
+
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // If user changes priority after AI suggestion, mark as not AI-accepted
+                        if (
+                          aiPrediction &&
+                          value !== aiPrediction.predictedPriority
+                        ) {
+                          setAiAccepted(false);
+                        } else if (
+                          aiPrediction &&
+                          value === aiPrediction.predictedPriority
+                        ) {
+                          setAiAccepted(true);
+                        }
+                      }}
+                      value={field.value}
                       defaultValue={field.value}
                     >
                       <FormControl>

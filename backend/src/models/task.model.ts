@@ -16,6 +16,8 @@ export interface TaskDocument extends Document {
   assignedTo: mongoose.Types.ObjectId | null;
   createdBy: mongoose.Types.ObjectId;
   dueDate: Date | null;
+  prioritySuggestedByAI: boolean;
+  aiConfidence: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -69,6 +71,14 @@ const taskSchema = new Schema<TaskDocument>(
     },
     dueDate: {
       type: Date,
+      default: null,
+    },
+    prioritySuggestedByAI: {
+      type: Boolean,
+      default: false,
+    },
+    aiConfidence: {
+      type: Number,
       default: null,
     },
   },

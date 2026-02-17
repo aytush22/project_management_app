@@ -225,6 +225,8 @@ export type CreateTaskPayloadType = {
     status: TaskStatusEnumType;
     assignedTo: string;
     dueDate: string;
+    prioritySuggestedByAI?: boolean;
+    aiConfidence?: number | null;
   };
 };
 
@@ -264,6 +266,8 @@ export type TaskType = {
   createdBy?: string;
   dueDate: string;
   taskCode: string;
+  prioritySuggestedByAI?: boolean;
+  aiConfidence?: number | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -284,4 +288,24 @@ export type AllTaskResponseType = {
   message: string;
   tasks: TaskType[];
   pagination: PaginationType;
+};
+
+// AI Priority Prediction Types
+export type PredictPriorityPayloadType = {
+  workspaceId: string;
+  data: {
+    title: string;
+    description?: string;
+    dueDate?: string;
+    assignedTo?: string;
+    projectId?: string;
+  };
+};
+
+export type PredictPriorityResponseType = {
+  message: string;
+  prediction: {
+    predictedPriority: "LOW" | "MEDIUM" | "HIGH";
+    confidence: number;
+  };
 };

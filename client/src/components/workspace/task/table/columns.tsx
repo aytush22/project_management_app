@@ -19,6 +19,7 @@ import {
 import { priorities, statuses } from "./data";
 import { TaskType } from "@/types/api.type";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Sparkles } from "lucide-react";
 
 export const getColumns = (projectId?: string): ColumnDef<TaskType>[] => {
   const columns: ColumnDef<TaskType>[] = [
@@ -67,29 +68,29 @@ export const getColumns = (projectId?: string): ColumnDef<TaskType>[] => {
     ...(projectId
       ? [] // If projectId exists, exclude the "Project" column
       : [
-          {
-            accessorKey: "project",
-            header: ({ column }: { column: Column<TaskType, unknown> }) => (
-              <DataTableColumnHeader column={column} title="Project" />
-            ),
-            cell: ({ row }: { row: Row<TaskType> }) => {
-              const project = row.original.project;
+        {
+          accessorKey: "project",
+          header: ({ column }: { column: Column<TaskType, unknown> }) => (
+            <DataTableColumnHeader column={column} title="Project" />
+          ),
+          cell: ({ row }: { row: Row<TaskType> }) => {
+            const project = row.original.project;
 
-              if (!project) {
-                return null;
-              }
+            if (!project) {
+              return null;
+            }
 
-              return (
-                <div className="flex items-center gap-1">
-                  <span className="rounded-full border">{project.emoji}</span>
-                  <span className="block capitalize truncate w-[100px] text-ellipsis">
-                    {project.name}
-                  </span>
-                </div>
-              );
-            },
+            return (
+              <div className="flex items-center gap-1">
+                <span className="rounded-full border">{project.emoji}</span>
+                <span className="block capitalize truncate w-[100px] text-ellipsis">
+                  {project.name}
+                </span>
+              </div>
+            );
           },
-        ]),
+        },
+      ]),
     {
       accessorKey: "assignedTo",
       header: ({ column }) => (
@@ -191,8 +192,10 @@ export const getColumns = (projectId?: string): ColumnDef<TaskType>[] => {
           return null;
         }
 
+        const isAiSuggested = row.original.prioritySuggestedByAI;
+
         return (
-          <div className="flex items-center">
+          <div className="flex items-center gap-1.5">
             <Badge
               variant={TaskPriorityEnum[statusKey]}
               className="flex lg:w-[110px] p-1 gap-1 !bg-transparent font-medium !shadow-none uppercase border-0"
@@ -200,6 +203,12 @@ export const getColumns = (projectId?: string): ColumnDef<TaskType>[] => {
               <Icon className="h-4 w-4 rounded-full text-inherit" />
               <span>{priority.label}</span>
             </Badge>
+            {isAiSuggested && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-violet-600 dark:text-violet-400 bg-violet-500/10 border border-violet-500/20 rounded-full px-1.5 py-0.5 whitespace-nowrap">
+                <Sparkles className="h-2.5 w-2.5" />
+                By AI
+              </span>
+            )}
           </div>
         );
       },

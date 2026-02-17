@@ -5,6 +5,7 @@ import {
   getAllTasksController,
   getTaskByIdController,
   updateTaskController,
+  predictPriorityController,
 } from "../controllers/task.controller.js";
 
 const taskRoutes = Router();
@@ -26,6 +27,11 @@ taskRoutes.get("/workspace/:workspaceId/all", getAllTasksController);
 taskRoutes.get(
   "/:id/project/:projectId/workspace/:workspaceId",
   getTaskByIdController
+);
+
+taskRoutes.post(
+  "/predict-priority/workspace/:workspaceId",
+  predictPriorityController
 );
 
 export default taskRoutes;

@@ -1,4 +1,4 @@
-import type{ Request, Response } from "express";
+import type { Request, Response } from "express";
 import { asyncHandler } from "../middlewares/asyncHandler.middleware.js";
 import {
   createTaskSchema,
@@ -18,6 +18,7 @@ import {
   updateTaskService,
 } from "../services/task.service.js";
 import { HTTPSTATUS } from "../config/http.config.js";
+import { predictPriorityService } from "../services/ml.service.js";
 
 export const createTaskController = asyncHandler(
   async (req: Request, res: Response) => {
@@ -144,5 +145,44 @@ export const deleteTaskController = asyncHandler(
     return res.status(HTTPSTATUS.OK).json({
       message: "Task deleted successfully",
     });
+  }
+);
+
+export const predictPriorityController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+    const workspaceId = workspaceIdSchema.parse(req.params.workspaceId);
+
+    const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
+    roleGuard(role, [Permissions.CREATE_TASK]);
+
+    const { title, description, dueDate, assignedTo, projectId } = req.body;
+
+    try {
+      const prediction = await predictPriorityService({
+        title,
+        description,
+        dueDate,
+        assignedTo,
+        workspaceId,
+        projectId,
+      });
+
+      return res.status(HTTPSTATUS.OK).json({
+        message: "Priority predicted successfully",
+        prediction,
+      });
+    } catch (error: any) {
+      console.error("[Predict Priority] ML Service Error:", error?.message || error);
+
+      const errorMessage = error?.code === "ECONNREFUSED"
+        ? "ML Service is not running. Please start the ML service on port 8001."
+        : `ML prediction failed: ${error?.message || "Unknown error"}`;
+
+      return res.status(503).json({
+        message: errorMessage,
+        error: "ML_SERVICE_UNAVAILABLE",
+      });
+    }
   }
 );
